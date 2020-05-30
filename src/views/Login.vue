@@ -21,42 +21,33 @@
               >
                 <v-toolbar-title>Аутентификация</v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-tooltip bottom>
-                  <template v-slot:activator="{ on }">
-                    <v-btn
-                      :href="source"
-                      icon
-                      large
-                      target="_blank"
-                      v-on="on"
-                    >
-                      <v-icon>mdi-code-tags</v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Source</span>
-                </v-tooltip>
               </v-toolbar>
               <v-card-text>
-                <v-form>
+                <form>
                   <v-text-field
-                    label="Login"
-                    name="login"
+                    v-model="user.username"
+                    :error-messages="emailErrors"
+                    label="Логин"
+                    required
                     prepend-icon="mdi-account"
-                    type="text"
+                    @input="$v.user.username.$touch()"
+                    @blur="$v.user.username.$touch()"
                   ></v-text-field>
-
                   <v-text-field
-                    id="password"
-                    label="Password"
-                    name="password"
+                    v-model="user.password"
+                    :error-messages="passwordErrors"
+                    label="Пароль"
                     prepend-icon="mdi-lock"
+                    required
                     type="password"
+                    @input="$v.user.password.$touch()"
+                    @blur="$v.user.password.$touch()"
                   ></v-text-field>
-                </v-form>
+                </form>
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="primary">Login</v-btn>
+                <v-btn @click="handleLogin" color="primary">Войти</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -66,10 +57,72 @@
 </template>
 
 <script>
+import { validationMixin } from 'vuelidate'
+import { required } from 'vuelidate/lib/validators'
+import User from '../models/user'
+
 export default {
+  mixins: [validationMixin],
+  validations: {
+    user: {
+      password: { required },
+      username: { required }
+    }
+  },
+
   name: 'Login',
-  props: {
-    source: String
+  data () {
+    return {
+      user: new User('', ''),
+      loading: false,
+      message: ''
+    }
+  },
+  computed: {
+    passwordErrors () {
+      const errors = []
+      if (!this.$v.user.password.$dirty) return errors
+      !this.$v.user.password.required && errors.push('Введите пароль.')
+      return errors
+    },
+    emailErrors () {
+      const errors = []
+      if (!this.$v.user.username.$dirty) return errors
+      !this.$v.user.username.required && errors.push('Введите логин')
+      return errors
+    },
+    loggedIn () {
+      return this.$store.state.auth.status.loggedIn
+    }
+  },
+  created () {
+    if (this.loggedIn) {
+      this.$router.push('/')
+    }
+  },
+  methods: {
+    handleLogin () {
+      this.loading = true
+      this.$v.$touch()
+      if (this.$v.$invalid) {
+        this.loading = false
+        return
+      }
+      if (this.user.username && this.user.password) {
+        this.$store.dispatch('auth/login', this.user).then(
+          () => {
+            this.$router.push('/')
+          },
+          error => {
+            this.loading = false
+            this.message =
+              (error.response && error.response.data) ||
+              error.message ||
+              error.toString()
+          }
+        )
+      }
+    }
   }
 }
 </script>
