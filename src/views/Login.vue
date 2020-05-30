@@ -47,7 +47,7 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn @click="handleLogin" color="primary">Войти</v-btn>
+                <v-btn @click="handleLogin" :error-messages="message" color="primary">Войти</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -102,19 +102,19 @@ export default {
   },
   methods: {
     handleLogin () {
-      this.loading = true
       this.$v.$touch()
       if (this.$v.$invalid) {
-        this.loading = false
         return
       }
       if (this.user.username && this.user.password) {
+        this.$store.commit('loader', true)
         this.$store.dispatch('auth/login', this.user).then(
           () => {
+            this.$store.commit('loader', false)
             this.$router.push('/')
           },
           error => {
-            this.loading = false
+            this.$store.commit('loader', false)
             this.message =
               (error.response && error.response.data) ||
               error.message ||
