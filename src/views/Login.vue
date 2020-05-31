@@ -47,8 +47,21 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn @click="handleLogin" :error-messages="message" color="primary">Войти</v-btn>
+                <v-btn @click="handleLogin" color="primary">Войти</v-btn>
               </v-card-actions>
+              <v-snackbar
+                v-model="snackbar"
+                :timeout="2000"
+              >
+                {{ 'Произошла ошибка: '+ message }}
+                <v-btn
+                  color="blue"
+                  text
+                  @click="snackbar = false"
+                >
+                  Закрыть
+                </v-btn>
+              </v-snackbar>
             </v-card>
           </v-col>
         </v-row>
@@ -75,7 +88,8 @@ export default {
     return {
       user: new User('', ''),
       loading: false,
-      message: ''
+      message: '',
+      snackbar: false
     }
   },
   computed: {
@@ -115,8 +129,9 @@ export default {
           },
           error => {
             this.$store.commit('loader', false)
+            this.snackbar = true
             this.message =
-              (error.response && error.response.data) ||
+              (error.response && error.response.data.message) ||
               error.message ||
               error.toString()
           }

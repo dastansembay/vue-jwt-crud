@@ -1,11 +1,11 @@
 import axios from 'axios'
 
-const API_URL = 'https://localhost:44398/users/'
-
+const API_URL = process.env.VUE_APP_BASE_URL
+console.log(API_URL)
 class AuthService {
   login (user) {
     return axios
-      .post(API_URL + 'authenticate', {
+      .post(API_URL + '/users/auth', {
         username: user.username,
         password: user.password
       })
