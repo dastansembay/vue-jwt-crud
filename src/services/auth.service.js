@@ -4,7 +4,7 @@ const API_URL = process.env.VUE_APP_BASE_URL
 class AuthService {
   login (user) {
     return axios
-      .post(API_URL + '/users/auth', {
+      .post(API_URL + '/api/users/auth', {
         username: user.username,
         password: user.password
       })
