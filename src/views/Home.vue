@@ -4,9 +4,11 @@
       <appHeader></appHeader>
     <v-data-table
       :headers="headers"
-      :items="desserts"
+      :items="this.$store.state.financeRequests.items"
       sort-by="calories"
       class="elevation-1"
+      no-data-text="Нет данных"
+      hide-default-footer
     >
     <template v-slot:top>
       <v-toolbar flat color="white">
@@ -24,23 +26,17 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="12" sm="6" md="4" hidden>
-                    <v-text-field v-model="editedItem.id" :label="headers[0].text"></v-text-field>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field v-model="editedItem.purpose" :label="headers[1].text"></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.publicNumber" :label="headers[1].text"></v-text-field>
+                    <v-text-field type="number" v-model.number="editedItem.monthCount" :label="headers[2].text"></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.purpose" :label="headers[2].text"></v-text-field>
+                    <v-text-field type="number" v-model.number="editedItem.interestRate" :label="headers[3].text"></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.monthCount" :label="headers[3].text"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.interestRate" :label="headers[4].text"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.amount" :label="headers[5].text"></v-text-field>
+                    <v-text-field type="number" v-model.number="editedItem.amount" :label="headers[4].text"></v-text-field>
                   </v-col>
                 </v-row>
               </v-container>
@@ -70,9 +66,6 @@
         mdi-delete
       </v-icon>
     </template>
-    <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
-    </template>
   </v-data-table>
   </v-container>
     </v-content>
@@ -87,10 +80,10 @@ export default {
   },
   data: () => ({
     dialog: false,
+    page: 1,
+    pageCount: 0,
+    itemsPerPage: 15,
     headers: [
-      {
-        value: 'Id'
-      },
       {
         text: 'Номер заявки',
         align: 'start',
@@ -103,7 +96,6 @@ export default {
       { text: 'Сумма', value: 'amount' },
       { text: 'Действия', value: 'actions', sortable: false }
     ],
-    desserts: [],
     editedIndex: -1,
     editedItem: {
       id: null,
@@ -141,19 +133,26 @@ export default {
 
   methods: {
     initialize () {
-      this.desserts = [
-      ]
+      this.$store.commit('loader', true)
+      this.$store.dispatch('financeRequests/fetchItems').then(() => this.$store.commit('loader', false))
     },
 
     editItem (item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = this.$store.state.financeRequests.items.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem (item) {
-      const index = this.desserts.indexOf(item)
-      confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
+      var confirmation = confirm('Вы уверены, что хотите удалить этот элемент?')
+      if (confirmation) {
+        this.$store.commit('loader', true)
+        this.$store.dispatch('financeRequests/deleteItem', item).then(
+          () => {
+            this.$store.commit('loader', false)
+          }
+        )
+      }
     },
 
     close () {
@@ -165,11 +164,12 @@ export default {
     },
 
     save () {
-      if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
-      } else {
-        this.desserts.push(this.editedItem)
-      }
+      this.$store.commit('loader', true)
+      this.$store.dispatch('financeRequests/postItem', this.editedItem).then(
+        () => {
+          this.$store.commit('loader', false)
+        }
+      )
       this.close()
     }
   }

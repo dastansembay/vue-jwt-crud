@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import { auth } from './auth.module'
+import { financeRequests } from './financeRequests.module'
 
 Vue.use(Vuex)
 
@@ -10,7 +11,8 @@ export default new Vuex.Store({
     loader: false
   },
   modules: {
-    auth
+    auth,
+    financeRequests
   },
   mutations: {
     loader (state, payload) {

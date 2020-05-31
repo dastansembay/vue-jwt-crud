@@ -43,11 +43,12 @@
                     @input="$v.user.password.$touch()"
                     @blur="$v.user.password.$touch()"
                   ></v-text-field>
+                   <v-btn hidden type="submit" @click="handleLogin"></v-btn>
                 </form>
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn @click="handleLogin" color="primary">Войти</v-btn>
+                <v-btn type="submit" @click="handleLogin" color="primary">Войти</v-btn>
               </v-card-actions>
               <v-snackbar
                 v-model="snackbar"

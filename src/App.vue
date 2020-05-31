@@ -1,13 +1,6 @@
 <template>
   <v-app id="inspire">
-      <v-content>
-      <v-container
-        class="fill-height"
-        fluid
-      >
-        <router-view/>
-      </v-container>
-    </v-content>
+<router-view/>
     <loader></loader>
   </v-app>
 </template>
