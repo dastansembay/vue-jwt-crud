@@ -18,6 +18,7 @@
           <template v-slot:activator="{ on }">
             <v-btn color="primary" dark class="mb-2" v-on="on">Новая заявка</v-btn>
           </template>
+          <v-form v-model="valid">
           <v-card>
             <v-card-title>
               <span class="headline">{{ formTitle }}</span>
@@ -26,17 +27,34 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.purpose" :label="headers[1].text"></v-text-field>
+                  <v-col cols="12" >
+                    <v-text-field v-model="editedItem.purpose" :rules="purposeRules" required :label="headers[1].text"></v-text-field>
                   </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field type="number" v-model.number="editedItem.monthCount" :label="headers[2].text"></v-text-field>
+                  <v-col cols="12" xs="12">
+                     <v-subheader class="pl-0">{{ headers[2].text }}</v-subheader>
+                    <v-slider
+                    class="mt-5"
+                    v-model.number="editedItem.monthCount"
+                    :min="0"
+                    :max="180"
+                    :thumb-size="32"
+                    thumb-label="always"
+                    ></v-slider>
                   </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field type="number" v-model.number="editedItem.interestRate" :label="headers[3].text"></v-text-field>
+                  <v-col cols="12" xs="12">
+                    <v-subheader class="pl-0">{{ headers[3].text }}</v-subheader>
+                    <v-slider
+                    class="mt-5"
+                    :min="1"
+                    :max="100"
+                    v-model.number="editedItem.interestRate"
+                    color="green"
+                    :thumb-size="32"
+                    thumb-label="always"
+                    ></v-slider>
                   </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field type="number" v-model.number="editedItem.amount" :label="headers[4].text"></v-text-field>
+                  <v-col cols="12" xs="12">
+                    <v-text-field type="number" :error="editedItem.amount < 0 || editedItem.amount > 10000000000" v-model.number="editedItem.amount" :label="headers[4].text"></v-text-field>
                   </v-col>
                 </v-row>
               </v-container>
@@ -45,9 +63,10 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="close">Отменить</v-btn>
-              <v-btn color="green darken-1" text @click="save">Сохранить</v-btn>
+              <v-btn color="green darken-1" text :disabled="!valid" @click="save">Сохранить</v-btn>
             </v-card-actions>
           </v-card>
+          </v-form>
         </v-dialog>
       </v-toolbar>
     </template>
@@ -79,6 +98,10 @@ export default {
     appHeader
   },
   data: () => ({
+    valid: true,
+    purposeRules: [
+      v => !!v || 'Введите цель финансирования'
+    ],
     dialog: false,
     page: 1,
     pageCount: 0,
@@ -92,7 +115,7 @@ export default {
       },
       { text: 'Цель', value: 'purpose' },
       { text: 'Срок (месяцев)', value: 'monthCount' },
-      { text: 'Процентная ставка', value: 'interestRate' },
+      { text: 'Ставка, %', value: 'interestRate' },
       { text: 'Сумма', value: 'amount' },
       { text: 'Действия', value: 'actions', sortable: false }
     ],
@@ -168,9 +191,22 @@ export default {
       this.$store.dispatch('financeRequests/postItem', this.editedItem).then(
         () => {
           this.$store.commit('loader', false)
+          this.close()
+        },
+        error => {
+          let message = error.message
+          if (error.response.data.errors) {
+            const validationError = error.response.data.errors
+            message = validationError[Object.keys(validationError)[0]]
+          } else {
+            message = (error.response && error.response.data.message) ||
+              error.message ||
+              error.toString()
+          }
+          this.$store.commit('loader', false)
+          this.$store.commit('snackbar', message)
         }
       )
-      this.close()
     }
   }
 }

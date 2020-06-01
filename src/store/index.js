@@ -8,7 +8,9 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    loader: false
+    loader: false,
+    snackmessage: '',
+    snackbar: false
   },
   modules: {
     auth,
@@ -17,6 +19,10 @@ export default new Vuex.Store({
   mutations: {
     loader (state, payload) {
       state.loader = payload
+    },
+    snackbar (state, message) {
+      state.snackmessage = message
+      state.snackbar = true
     }
   }
 })

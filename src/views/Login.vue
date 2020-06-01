@@ -50,19 +50,6 @@
                 <v-spacer></v-spacer>
                 <v-btn type="submit" @click="handleLogin" color="primary">Войти</v-btn>
               </v-card-actions>
-              <v-snackbar
-                v-model="snackbar"
-                :timeout="2000"
-              >
-                {{ 'Произошла ошибка: '+ message }}
-                <v-btn
-                  color="blue"
-                  text
-                  @click="snackbar = false"
-                >
-                  Закрыть
-                </v-btn>
-              </v-snackbar>
             </v-card>
           </v-col>
         </v-row>
